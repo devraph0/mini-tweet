@@ -1,11 +1,109 @@
 <?php
-class UsersController
+namespace controllers;
+
+use models\Bdd;
+use models\Model;
+class UsersController extends Model
 {
+	private $_token;
+	private $_username;
+
+	private function authError ()
+	{
+		$this->send('error', ['message' => 'incorrect username or password']);
+		return false;
+	}
+
+	private function authSuccess ()
+	{
+		$this->send('success', ['token' => $this->_token, 'username' => $this->_username]);
+		$_SESSION['token'] = $this->_token;
+		$_SESSION['username'] = $this->_username;
+		return true;
+	}
+
+	private function checkUsername ($update = false)
+	{
+		$db = new Bdd();
+
+		$username = addslashes($_POST['username']);
+
+		if (!$update) {
+			$get = $db->getBdd()->prepare('SELECT id FROM users WHERE username = ?');
+			$get->bindParam(1, $username);
+			$get->execute();
+			$id = $get->fetch()['id'];
+			if ($id) {
+				return false;
+			}
+			return true;
+		} else {
+			$get = $db->getBdd()->prepare('SELECT id FROM users WHERE username = ? AND token != ?');
+			$get->bindParam(1, $username);
+			$get->bindParam(2, $_SESSION['token']);
+			$get->execute();
+			if ($id) {
+				return false;
+			}
+			return true;
+		}
+	}
+
+	public function connection ()
+	{
+		$username = addslashes($_POST['username']);
+		$password = addslashes($_POST['password']);
+
+		$db = new Bdd();
+		$get = $db->getBdd()->prepare('SELECT id, password FROM users WHERE username = ?');
+		$get->bindParam(1, $username);
+		$get->execute();
+		$user = $get->fetch(\PDO::FETCH_ASSOC);
+
+		if (!$user) {
+			return $this->authError();
+		}
+
+		if (!password_verify($password, $user['password'])) {
+			return $this->authError();
+		}
+
+		$token = sha1(time() * rand(1, 1000));
+
+		$update = $db->getBdd()->prepare('UPDATE users SET token = ? WHERE id = ?');
+		$update->bindParam(1, $token);
+		$update->bindParam(2, $user['id']);
+		if ($update->execute()) {
+			return $this->authSuccess();
+		}
+
+		return false;
+	}
+
+	public function disconnect ()
+	{
+		session_destroy();
+		header('Location:./');
+	}
+
 	public function create ()
 	{
-		$bdd = new Bdd();
+		$db = new Bdd();
 
-		
+		$username = addslashes($_POST['username']);
+		$password = addslashes($_POST['password']);
+
+		if ($this->checkUsername()) {
+			$create = $db->getBdd()->prepare('INSERT INTO users (username, password, created_at) VALUES (?, ?, NOW())');
+			$create->bindParam(1, $username);
+			$create->bindParam(2, $password);
+			if ($create->execute()) {
+				return $this->connection();
+			}
+		} else {
+			$this->send('error', 'username already in use');
+			return false;
+		}
 	}
 
 	public function read ()
@@ -15,7 +113,7 @@ class UsersController
 
 	public function update ()
 	{
-
+		
 	}
 
 	public function delete ()
