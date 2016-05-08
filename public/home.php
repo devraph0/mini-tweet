@@ -28,6 +28,7 @@
 				</div>
 				<button class="btn btn-default" type="submit">Update</button>
 			</form>
+			<a href="?removeAccount=1" onclick="return confirm('are you sure you want to delete your account ? :(')">Remove my account ?</a>
 			<h4>Send tweet</h4>
 			<form action="#" method="post">
 				<input type="hidden" name="to" value="send-tweet">

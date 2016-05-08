@@ -14,6 +14,9 @@ class UsersController extends Model
 		if (isset($_GET['logout'])) {
 			$this->disconnect();
 		}
+		if (isset($_GET['removeAccount'])) {
+			$this->delete();
+		}
 		if (isset($_POST['to'])) {
 			switch ($_POST['to']) {
 				case 'register':
@@ -203,7 +206,7 @@ class UsersController extends Model
 		$delete->bindParam(1, $_SESSION['id']);
 		$delete->bindParam(2, $_SESSION['token']);
 		if ($delete->execute()) {
-			$this->send('success', null);
+			$this->disconnect();
 			return true;
 		}
 		$this->send('error', 'error occured [3]');

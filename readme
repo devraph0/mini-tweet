@@ -1,4 +1,4 @@
-importez la base de donnée db.sql
+importez la base de donnée tweet.sql
 
 modifiez le fichier config.php pour la base de donnée
 
