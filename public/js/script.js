@@ -11,3 +11,9 @@ function menu_register () {
 	document.getElementById('connection').style.display = "none";
 	document.getElementById('register').style.display = "block";
 }
+
+function remaining () {
+	var rest = 120 - document.getElementById('tweet').value.length;
+
+	document.getElementById('remaining').innerHTML = rest;
+}

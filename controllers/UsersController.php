@@ -9,6 +9,23 @@ class UsersController extends Model
 	private $_username;
 	private $_id;
 
+	public function __construct ()
+	{
+		if (isset($_GET['logout'])) {
+			$this->disconnect();
+		}
+		if (isset($_POST['to'])) {
+			switch ($_POST['to']) {
+				case 'register':
+					$this->create();
+					break;
+				case 'connection':
+					$this->connection();
+					break;
+			}
+		}
+	}
+
 	private function authError ()
 	{
 		$this->send('error', ['message' => 'incorrect username or password']);
@@ -98,6 +115,8 @@ class UsersController extends Model
 		$username = addslashes($_POST['username']);
 		$password = addslashes($_POST['password']);
 
+		$password = password_hash($password, PASSWORD_DEFAULT);
+
 		if ($this->checkUsername()) {
 			$create = $db->getBdd()->prepare('INSERT INTO users (username, password, created_at) VALUES (?, ?, NOW())');
 			$create->bindParam(1, $username);
@@ -122,8 +141,8 @@ class UsersController extends Model
 
 		$user = $get->fetch(\PDO::FETCH_ASSOC);
 		if ($user) {
-			$this->send('success', $user);
-			return true;
+			//$this->send('success', $user);
+			return $user;
 		}
 		$this->send('error', ['message' => 'an error occured [1]']);
 		return false;
@@ -155,6 +174,11 @@ class UsersController extends Model
 		$update->bindParam(2, $_SESSION['id']);
 		$update->bindParam(3, $_SESSION['token']);
 		return $update->execute();
+	}
+
+	private function updateAvatar ()
+	{
+
 	}
 
 	public function delete ()

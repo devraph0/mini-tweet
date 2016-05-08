@@ -7,7 +7,7 @@ Class Bdd
 
     public function __construct ()
     {
-        $config = include '../config.php';
+        $config = include 'config.php';
         try {
             $this->_bdd = new \PDO('mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['dbname'], $config['db']['username'], $config['db']['password']);
         }
