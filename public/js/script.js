@@ -17,3 +17,8 @@ function remaining () {
 
 	document.getElementById('remaining').innerHTML = rest;
 }
+function remainingupdate () {
+	var rest = 120 - document.getElementById('tweetupdate').value.length;
+
+	document.getElementById('remainingupdate').innerHTML = rest;
+}
