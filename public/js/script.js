@@ -17,8 +17,10 @@ function remaining () {
 
 	document.getElementById('remaining').innerHTML = rest;
 }
-function remainingupdate () {
-	var rest = 120 - document.getElementById('tweetupdate').value.length;
+function remainingupdate (id) {
+	console.log(id);
+	console.log(this);
+	var rest = 120 - document.getElementById('tweetupdate' + id).value.length;
 
-	document.getElementById('remainingupdate').innerHTML = rest;
+	document.getElementById('remainingupdate' + id).innerHTML = rest;
 }

@@ -47,7 +47,13 @@ class TweetsController extends Model
 	{
 		$db = new Bdd();
 
-		$get = $db->getBdd()->prepare('SELECT id, content, created_at, updated_at FROM tweets WHERE user_id = ? AND active = 1 ORDER BY id DESC');
+		$page = 0;
+		if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+			$page = intval($_GET['page']) - 1;
+		}
+		$offset = (int) $page * 3;
+
+		$get = $db->getBdd()->prepare('SELECT id, content, created_at, updated_at FROM tweets WHERE user_id = ? AND active = 1 ORDER BY id DESC LIMIT 3 OFFSET ' . $offset);
 		$get->bindParam(1, $_SESSION['id']);
 		if ($get->execute()) {
 			$all = $get->fetchAll(\PDO::FETCH_ASSOC);
@@ -56,11 +62,25 @@ class TweetsController extends Model
 
 		return false;
 	}
+	public function count()
+	{
+		$db = new Bdd();
+
+		$count = $db->getBdd()->prepare('SELECT count(id) AS nb FROM tweets WHERE user_id = ? AND active = 1');
+		$count->bindParam(1, $_SESSION['id']);
+		if ($count->execute()) {
+			$nb = $count->fetch(\PDO::FETCH_ASSOC)['nb'];
+			return ceil($nb / 3);
+		}
+		return false;
+	}
 
 	public function update ()
 	{
 		$db = new Bdd();
-
+		if (strlen($_POST['tweet']) > 120) {
+			return $this->send('error', 'you send more than 120 letters');
+		}
 		$update = $db->getBdd()->prepare('UPDATE tweets SET content = ?, updated_at = NOW() WHERE user_id = ? AND active = 1 AND id = ?');
 		$update->bindParam(1, $_POST['tweet']);
 		$update->bindParam(2, $_SESSION['id']);

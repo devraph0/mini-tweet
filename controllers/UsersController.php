@@ -22,6 +22,10 @@ class UsersController extends Model
 				case 'connection':
 					$this->connection();
 					break;
+
+				case 'update-user':
+					$this->update();
+					break;
 			}
 		}
 	}
@@ -61,6 +65,7 @@ class UsersController extends Model
 			$get->bindParam(1, $username);
 			$get->bindParam(2, $_SESSION['token']);
 			$get->execute();
+			$id = $get->fetch()['id'];
 			if ($id) {
 				return false;
 			}
@@ -152,32 +157,41 @@ class UsersController extends Model
 	{
 		$db = new Bdd();
 
-		// change username
-		if (isset($_POST['username'])) {
-			if ($this->checkUsername(true)) {
-				if ($this->updateUsername()) {
-					$this->send('success', null);
-					return true;
+		// check username
+		if ($this->checkUsername(true)) {
+			if (!empty($_POST['photo'])) {
+				if (filter_var($_POST['photo'], FILTER_VALIDATE_URL) === FALSE) {
+					$this->send('error', 'not an url');
+					return false;
+				}
+				$validExt = array("gif", "jpg", "jpeg", "png");
+
+				$urlExt = pathinfo($_POST['photo'], PATHINFO_EXTENSION);
+
+				if (!in_array($urlExt, $validExt)) {
+					$this->send('error', 'not an image (accepted format is : git, jpg, jpeg, png)');
+					return false;
 				}
 			}
+			$db = new Bdd();
+
+			$update = $db->getBdd()->prepare('UPDATE users SET username = ?, img = ?, updated_at = NOW() WHERE id = ? AND token = ? AND active = 1');
+			$update->bindParam(1, $_POST['username']);
+			$update->bindParam(2, $_POST['photo']);
+			$update->bindParam(3, $_SESSION['id']);
+			$update->bindParam(4, $_SESSION['token']);
+			if ($update->execute()) {
+				$this->send('success', null);
+				return true;
+			} else {
+				$this->send('error', 'error occured [5]');
+				return false;
+			}
+		} else {
+			$this->send('error', 'username already in use');
+			return false;			
 		}
-		$this->send('error', 'error occured [2]');
-		return false;
-	}
 
-	private function updateUsername ()
-	{
-		$db = new Bdd();
-
-		$update = $db->getBdd()->prepare('UPDATE users SET username = ? WHERE id = ? AND token = ? AND active = 1');
-		$update->bindParam(1, $_POST['username']);
-		$update->bindParam(2, $_SESSION['id']);
-		$update->bindParam(3, $_SESSION['token']);
-		return $update->execute();
-	}
-
-	private function updateAvatar ()
-	{
 
 	}
 

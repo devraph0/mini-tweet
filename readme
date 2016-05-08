@@ -1,0 +1,6 @@
+importez la base de donnée db.sql
+
+modifiez le fichier config.php pour la base de donnée
+
+compte : test
+password : test
